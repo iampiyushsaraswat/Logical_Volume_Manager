@@ -1,0 +1,75 @@
+question: The database server called centos-host is running short on space! You have been asked to add an LVM volume for the Database team using some of the existing disks on this server.
+
+
+Inspect the requirements in detail by clicking on the icons of the interactive architecture diagram on the right and complete the tasks. Once done click on the Check button to validate your work.
+
+Answer: Install and Configure LVM on CentOS
+
+LVM stands for Logical Volume Manager. LVM is a tool for logical volume management. LVM can be used to create easy to maintain logical volumes, manage disk quotas using logical volumes, resize logical volumes on the fly, create software RAIDs, combining hard drives into a big storage pool and many more.In this article, I will show you how to install and configure LVM on CentOS 7
+
+LVM has basically three terms, Physical Volume PV, Volume Group VG, Logical Volume LV.
+
+a.)PV – It’s a raw hard drive that it initialized to work with LVM, such as /dev/sdb, /dev/sdc, /dev/sdb1 etc.
+b.)VG – Many PV is combined into one VG. You can create many VGs and each of them has a unique name.
+c.)LV – You can create many LVs from a VG. You can extend, reduce the LV size on the fly. The LV also has unique names. You format the LV into ext4, zfs, btrfs etc filesystems, mount it and use it as you do other ordinary partitions.
+
+
+Installing LVM-
+First update the YUM package repository cache with the following command:
+$ sudo yum makecache
+
+Run the following command to install LVM on CentOS 7:
+$ sudo yum install lvm
+
+Adding the Disk to LVM PV:
+
+Now run the following command to add the disk /dev/sdb1 to the LVM as PV:
+$ sudo pvcreate /dev/sdb1
+
+You can list all the PV with the following command:
+$ sudo pvscan
+
+If you want to display more information about any specific PV, let’s say /dev/sdb1, then run the following command:
+$ sudo pvdisplay /dev/sdb1
+
+Creating Volume Groups:
+
+Now you can create a VG out of as many PV as you have available. Right now I have only one PV /dev/sdb1 available.
+
+Run the following command to create VG share with PV /dev/sdb1:
+$ sudo vgcreate share /dev/sdb1
+
+Now you can list all the VGs with the following command:
+$ sudo vgscan
+
+You can display more information about any specific VG, such as share with the following command:
+$ sudo vgdisplay share
+
+Extending Volume Groups:
+If you wish you can add more PV to an existing VG share with the following command:
+$ sudo vgextend share /dev/sdc1
+
+Creating Logical Volumes:
+Now you can create as many LVs as you want using a VG, in my case VG share.
+
+You can create a 100MB LV www_shovon from VG share with the following command:
+$ sudo lvcreate --size 100M--name www_shovon share
+
+Let’s create another LV www_wordpress of size 1GB from VG share with the following command:
+$ sudo lvcreate --size 1G --name www_wordpress share
+
+Now you can list all the LVs with the following commands:
+$ sudo lvscan
+
+You can also display more information about any specific LV with the following command:
+$ sudo lvdisplay VG_NAME/LV_NAME
+
+In my case, VG_NAME is share and LV_NAME is www_shovon
+$ sudo lvdisplay share/www_shovon
+
+Now you can mount /dev/share/www_wordpress to any empty directory such as /var/www/wordpress with the following command:
+$ sudo mount /dev/share/www_wordpress /var/www/wordpress
+
+As you can see, the LV is mounted to the desired mount point:
+$ df -h
+
